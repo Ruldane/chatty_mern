@@ -36,4 +36,17 @@ export class Helpers {
     }
     return parseInt(result, 10);
   }
+
+  /**
+   * Parses a JSON string and returns a JavaScript object or the JSON string
+   * @param json The JSON string to parse.
+   * @returns The JavaScript object or the JSON string.
+   */
+  static parseJson(json: string): any {
+    try {
+      return JSON.parse(json);
+    } catch (error) {
+      return json;
+    }
+  }
 }

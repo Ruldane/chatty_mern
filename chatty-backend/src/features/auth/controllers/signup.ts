@@ -39,6 +39,10 @@ export class SignUp {
     const userObjectId: ObjectId = new ObjectId();
     const uId = `${Helpers.generateRandomIntegers(12)}`;
 
+    /**
+     * This method is used to create an auth document for the user.
+     * @param data The data to be stored in the document.
+     */
     const authData: IAuthDocument = SignUp.prototype.signupData({
       _id: authObjectId,
       uId,
@@ -47,25 +51,35 @@ export class SignUp {
       password,
       avatarColor
     });
+
+    // The API call to Cloudinary to upload the avatar image
+    // The `public_id` property contains the file name of the uploaded image
+    // If the upload fails, an error is thrown
     const result: UploadApiOptions = (await uploads(avatarImage, `${userObjectId}`, true, true)) as UploadApiOptions;
     if (!result?.public_id) {
       throw new BadRequestError('File upload failed');
     }
 
-    // Add to redis Cache
+    /**
+     * The function returns user data with profile image.
+     * Add to redis Cache
+     * @param authData - The data of the current user.
+     * @param userObjectId - The id of the current user.
+     * @returns {Promise<IUserDocument>} - The data of the current user.
+     */
     const userDataForCache: IUserDocument = SignUp.prototype.userData(authData, userObjectId);
     userDataForCache.profilePicture = `https://res.cloudinary.com/${config.CLOUD_NAME}/image/upload/v${result.version}/${userObjectId}`;
     await userCache.saveUserToCache(`${userObjectId}`, uId, userDataForCache);
 
     // delete from userForCach
-    omit(userDataForCache, ['uId', 'username', 'email', 'avatarColor', 'password']);
+    const userResult = omit(userDataForCache, ['uId', 'username', 'email', 'avatarColor', 'password']);
     // Add to database Redis
     authQueue.addAuthUserJob('addAuthUserToDB', {
-      value: userDataForCache
+      value: authData
     });
 
     userQueue.addUserJob('addUserToDB', {
-      value: userDataForCache
+      value: userResult
     });
     const userJwt: string = SignUp.prototype.signToken(authData, userObjectId);
 

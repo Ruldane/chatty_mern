@@ -3,6 +3,7 @@ import { IUserDocument } from '@user/interfaces/user.interface';
 import Logger from 'bunyan';
 import { config } from '@root/config';
 import { ServerError } from '@global/helpers/error-handler';
+import { Helpers } from '@global/helpers/helpers';
 
 const log: Logger = config.createLogger('userCache');
 
@@ -40,7 +41,7 @@ export class UserCache extends BaseCache {
     // The updateProfile function takes a list of strings and updates the user's profile information.
     // The list of strings is in the following format: [key, value, key, value, ...]
     // The first element is the key, the second is the value, and so on.
-    // For example, if the list is ['id', '123', 'username',
+    // For example, if the list is ['id', '123', 'username']
     const firstList: string[] = [
       '_id',
       `${_id}`,
@@ -109,6 +110,37 @@ export class UserCache extends BaseCache {
       await this.client.HSET(`users:${key}`, dataToSave);
     } catch (error) {
       log.error('Save user to redis error: ' + error);
+      throw new ServerError('Server error. Try again.');
+    }
+  }
+
+  /**
+   * Returns a user from the cache.
+   * @param userId the user ID.
+   * @returns the user from Redis.
+   */
+  public async getUserFromCache(userId: string): Promise<IUserDocument | null> {
+    try {
+      if (!this.client.isOpen) {
+        await this.client.connect();
+      }
+
+      const response: IUserDocument = (await this.client.HGETALL(`users:${userId}`)) as unknown as IUserDocument;
+      response.createdAt = new Date(Helpers.parseJson(`${response.createdAt}`));
+      response.postsCount = Helpers.parseJson(`${response.postsCount}`);
+      response.blocked = Helpers.parseJson(`${response.blocked}`);
+      response.blockedBy = Helpers.parseJson(`${response.blockedBy}`);
+      response.notifications = Helpers.parseJson(`${response.notifications}`);
+      response.social = Helpers.parseJson(`${response.social}`);
+      response.followersCount = Helpers.parseJson(`${response.followersCount}`);
+      response.followingCount = Helpers.parseJson(`${response.followingCount}`);
+      response.bgImageId = Helpers.parseJson(`${response.bgImageId}`);
+      response.bgImageVersion = Helpers.parseJson(`${response.bgImageVersion}`);
+      response.profilePicture = Helpers.parseJson(`${response.profilePicture}`);
+
+      return response;
+    } catch (error) {
+      log.error(error);
       throw new ServerError('Server error. Try again.');
     }
   }

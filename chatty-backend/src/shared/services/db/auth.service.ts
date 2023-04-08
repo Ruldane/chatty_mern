@@ -9,6 +9,11 @@ import { Helpers } from '@global/helpers/helpers';
  * @returns {Promise<IAuthDocument>}
  */
 class AuthService {
+  /**
+   * Creates a new user in the database.
+   *
+   * @param data The user data.
+   */
   public async createAuthUser(data: IAuthDocument): Promise<void> {
     await AuthModel.create(data);
   }
@@ -28,6 +33,16 @@ class AuthService {
       ]
     };
     const user: IAuthDocument = (await AuthModel.findOne(query).exec()) as IAuthDocument;
+    return user;
+  }
+
+  /**
+   * This function gets an auth user by their username.
+   * @param username The username of the auth user to get.
+   * @returns The auth user if found, null otherwise.
+   */
+  public async getAuthUserByUsername(username: string): Promise<IAuthDocument> {
+    const user: IAuthDocument = (await AuthModel.findOne({ username: Helpers.firstLetterUpperCase(username) }).exec()) as IAuthDocument;
     return user;
   }
 }

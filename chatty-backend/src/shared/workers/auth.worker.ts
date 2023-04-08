@@ -6,6 +6,12 @@ import { authService } from '@service/db/auth.service';
 const log: Logger = config.createLogger('authWorker');
 
 class AuthWorker {
+  /**
+   * This method is used to add a new user to the DB.
+   * @param job - This is the job that is being processed by the queue.
+   * @param done - This is the callback function that is called when the processing is done.
+   */
+
   async addAuthUserToDB(job: Job, done: DoneCallback): Promise<void> {
     try {
       const { value } = job.data;
