@@ -37,3 +37,24 @@ GET {{baseUrl}}/{{urlPath}}/currentuser
 Content-Type: application/json
 Accept: : application/json
 withCredentials: true
+
+### 
+POST {{baseUrl}}/{{urlPath}}/forgot-password
+Content-Type: application/json
+Accept: : application/json
+withCredentials: true
+
+{
+    "email": "dbonjour@ddd.fr"
+}
+
+### 
+POST {{baseUrl}}/{{urlPath}}/reset-password/ce53e87ab5ec6f5c1d44335cdcb766e947b4ddce
+Content-Type: application/json
+Accept: : application/json
+withCredentials: true
+
+{
+    "password": "bonbon",
+    "confirmPassword": "bonbon"
+}
