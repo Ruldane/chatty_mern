@@ -5,9 +5,9 @@ import { ObjectId } from 'mongodb';
 import HTTP_STATUS from 'http-status-codes';
 import { IPostDocument } from '@post/interfaces/post.interface';
 import { PostCache } from '@service/redis/post.cache';
-import { SocketIOPostHandler, socketIOPostObject } from '@socket/post';
+import { socketIOPostObject } from '@socket/post';
 import { postQueue } from '@service/queus/post.queue';
-import { UploadApiOptions } from 'cloudinary';
+import { UploadApiOptions, UploadApiResponse } from 'cloudinary';
 import { BadRequestError } from '@global/helpers/error-handler';
 import { uploads } from '@global/helpers/cloudinary-upload';
 
@@ -58,7 +58,7 @@ export class Create {
   @joiValidation(postWithImageSchema)
   public async postWithImage(req: Request, res: Response): Promise<void> {
     const { post, bgColor, privacy, gifUrl, profilePicture, feelings, image } = req.body;
-    const result: UploadApiOptions = (await uploads(image)) as UploadApiOptions;
+    const result: UploadApiResponse = (await uploads(image)) as UploadApiResponse;
     if (!result?.public_id) {
       throw new BadRequestError(result.message);
     }
