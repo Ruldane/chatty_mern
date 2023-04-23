@@ -15,6 +15,13 @@ const postCache: PostCache = new PostCache();
 
 export class Create {
   @joiValidation(postSchema)
+  /**
+  Creates a new post and sends it to the server through the socketIO connection.
+  Also saves the post to the cache and adds it to the post queue to be added to the database.
+  @param {Request} req - The request object containing the post data and the current user information.
+  @param {Response} res - The response object that will be sent back to the client.
+  @returns {Promise} - A promise that resolves once the post has been created and saved. 
+  */
   public async post(req: Request, res: Response): Promise<void> {
     const { post, bgColor, privacy, gifUrl, profilePicture, feelings } = req.body;
     const postObjectId: ObjectId = new ObjectId();

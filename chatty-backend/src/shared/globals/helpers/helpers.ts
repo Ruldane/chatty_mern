@@ -1,5 +1,11 @@
 export class Helpers {
-  // Convert the string to all lowercase
+  /**
+   * Converts the first letter of each word in the given string to uppercase
+   * and the rest of the letters to lowercase.
+   *
+   * @param str The string to transform.
+   * @returns The transformed string.
+   */
   static firstLetterUpperCase(str: string): string {
     const valueString = str.toLowerCase();
     // Split the string into an array of letters
