@@ -14,18 +14,29 @@ class PostService {
     await Promise.all([post, user]);
   }
 
+  /**
+   * Retrieves an array of posts from the database that match the given query, sorted using the provided sorting object,
+   * and paginated using skip and limit.
+   * @param query The query object used to filter the posts.
+   * @param skip The number of posts to skip before returning results.
+   * @param limit The maximum number of posts to return.
+   * @param sort The object used to sort the posts. Each key is a field to sort by, and the value is 1 for ascending or -1 for descending.
+   * @returns An array of post documents.
+   */
   public async getPosts(query: IGetPostsQuery, skip = 0, limit = 0, sort: Record<string, 1 | -1>): Promise<IPostDocument[]> {
     let postQuery = {};
+
+    // If both imgId and gifUrl are provided in query, search for posts that have either.
     if (query?.imgId && query?.gifUrl) {
-      // $or will return all posts that have either imgId or gifUrl
-      // $ne will return all posts that have imgId or gifUrl that are not empty
-      // $ne mean not equal
       postQuery = { $or: [{ imgId: { $ne: '' } }, { giftUrl: { $ne: '' } }] };
     } else {
+      // Otherwise, use the query object as-is.
       postQuery = query;
     }
-    // skip and limit are used for pagination
+
+    // Use the PostModel aggregate function to retrieve posts matching the given query, sorted and paginated as needed.
     const posts: IPostDocument[] = await PostModel.aggregate([{ $match: postQuery }, { $sort: sort }, { $skip: skip }, { $limit: limit }]);
+
     return posts;
   }
 

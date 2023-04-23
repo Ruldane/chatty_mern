@@ -8,7 +8,7 @@ Accept: : application/json
 withCredentials: true
 
 {
-    "post": "This is my second post!",
+    "post": "This is my other post!",
     "bgColor":"green",
     "privacy": "Private",
     "gifUrl": "",
@@ -23,7 +23,7 @@ Accept: : application/json
 withCredentials: true
 
 {
-    "post": "This is my second post!",
+    "post": "This is my other post with image",
     "bgColor":"green",
     "privacy": "Private",
     "gifUrl": "",
@@ -62,7 +62,7 @@ withCredentials: true
 }
 
 ###
-PUT  {{baseUrl}}/{{urlPath}}/post/image/643a7a7c7e2d77433780e849
+PUT  {{baseUrl}}/{{urlPath}}/post/image/6445421baf03033d2bf8c841
 Content-Type: application/json
 Accept: : application/json
 withCredentials: true
