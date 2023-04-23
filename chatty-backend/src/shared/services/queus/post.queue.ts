@@ -1,5 +1,3 @@
-import { IAuthJob } from '@auth/interfaces/auth.interface';
-import { authWorker } from '@worker/auth.worker';
 import { BaseQueue } from './base.queue';
 import { IPostJobData } from '@post/interfaces/post.interface';
 import { postWorker } from '@worker/post.worker';

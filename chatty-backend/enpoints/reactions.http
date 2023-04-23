@@ -1,0 +1,49 @@
+@baseUrl =http://localhost:5000
+@urlPath =api/v1
+
+### 
+POST {{baseUrl}}/{{urlPath}}/post/reaction
+Content-Type: application/json
+Accept: : application/json
+withCredentials: true
+
+{
+    "userTo": "643a6704c01ded94b528ce0c",
+    "postId": "64414108d069a58f61f0a397",
+    "type":"happy",
+    "previousReaction": "",
+    "postReactions": {"like":0,"love":0,"happy":1,"sad":0,"wow":0,"angry":0},
+    "profilePicture": "https://res.cloudinary.com/dk2jrgxzd/image/upload/v1681544041/643a5367cce10de6d793d3a4"
+    }
+
+###
+DELETE {{baseUrl}}/{{urlPath}}/post/reaction/64414108d069a58f61f0a397/happy/{"like": 0,"love": 0,"happy": 0,"sad": 0,"wow": 0,"angry": 0}
+Content-Type: application/json
+Accept: application/json
+withCredentials: true
+
+{}
+
+###
+GET {{baseUrl}}/{{urlPath}}/post/reactions/643a7a7c7e2d77433780e849
+Content-Type: application/json
+Accept: application/json
+withCredentials: true
+
+{}
+
+###
+GET {{baseUrl}}/{{urlPath}}/post/single/reaction/username/HELLZOO/643a7a7c7e2d77433780e849
+Content-Type: application/json
+Accept: application/json
+withCredentials: true
+
+{}
+
+###
+GET {{baseUrl}}/{{urlPath}}/post/reactions/username/HELLZOO
+Content-Type: application/json
+Accept: application/json
+withCredentials: true
+
+{}
