@@ -1,17 +1,11 @@
 import { ICommentNameList } from './../../../features/comments/interfaces/comment.interface';
 import { BaseCache } from '@service/redis/base.cache';
-import { IUserDocument } from '@user/interfaces/user.interface';
 import Logger from 'bunyan';
 import { config } from '@root/config';
 import { ServerError } from '@global/helpers/error-handler';
 import { Helpers } from '@global/helpers/helpers';
-import { IPostDocument, ISavePostToCache } from '@post/interfaces/post.interface';
-import { IReactions } from '@reaction/interfaces/reaction.interface';
-import { RedisCommandRawReply } from '@redis/client/dist/lib/commands';
-import { updatedPost } from '../../../mocks/post.mock';
-import { IpOptions } from 'joi';
 import { find } from 'lodash';
-import { ICommentDocument, ICommentNameList } from '@comment/interfaces/comment.interface';
+import { ICommentDocument } from '@comment/interfaces/comment.interface';
 
 const log: Logger = config.createLogger('commentsCache');
 
@@ -83,7 +77,7 @@ export class CommentCache extends BaseCache {
    * @returns - An array of ICommentNameList objects containing the count and names of comments.
    * @throws - Throws a ServerError if there was an error retrieving comments from cache.
    */
-  public async getCommentsNameFromCache(postId: string): Promise<ICommentNameList[]> {
+  public async getCommentsNamesFromCache(postId: string): Promise<ICommentNameList[]> {
     try {
       // Ensure Redis client is connected
       if (!this.client.isOpen) {
