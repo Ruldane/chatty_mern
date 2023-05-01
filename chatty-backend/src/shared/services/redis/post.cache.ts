@@ -28,6 +28,7 @@ export class PostCache extends BaseCache {
       userId,
       username,
       email,
+
       avatarColor,
       profilePicture,
       post,
@@ -260,28 +261,44 @@ export class PostCache extends BaseCache {
     }
   }
 
+  /**
+   * Deletes a post from the cache and Redis, and updates the user's post count.
+   * @param key The key of the post to delete.
+   * @param currentUserId The ID of the user who posted the post.
+   * @throws {ServerError} If there is a server error.
+   */
   public async deletePostFromCache(key: string, currentUserId: string): Promise<void> {
     try {
+      // Connect to Redis if not already connected
       if (!this.client.isOpen) {
         await this.client.connect();
       }
 
+      // Get the user's current post count
       const postCount: string[] = await this.client.HMGET(`users:${currentUserId}`, 'postsCount');
       const multi: ReturnType<typeof this.client.multi> = this.client.multi();
-      // this will delete the post from the sorted set
+
+      // Remove the post from the sorted set
       multi.ZREM('post', `${key}`);
-      // this will delete the post from Redis
+
+      // Remove the post and associated data from Redis
       multi.DEL(`posts:${key}`);
       multi.DEL(`comments:${key}`);
       multi.DEL(`reactions:${key}`);
+
+      // Update the user's post count
       const count: number = parseInt(postCount[0], 10) - 1;
       multi.HSET(`users:${currentUserId}`, 'postsCount', count);
+
+      // Execute the Redis commands as a transaction
       await multi.exec();
     } catch (error) {
+      // Log any errors and throw a server error
       log.error(error);
       throw new ServerError('Server error. Try again.');
     }
   }
+
   /**
    * Updates a post in the cache with the provided key and updated post object.
    * @param key - The key used to identify the post in the cache.
@@ -289,11 +306,12 @@ export class PostCache extends BaseCache {
    * @returns The updated post object.
    */
   public async updatePostInCache(key: string, updatedPost: IPostDocument): Promise<IPostDocument> {
+    // Destructure properties from updated post object.
     const { post, bgColor, feelings, privacy, gifUrl, imgVersion, imgId, profilePicture } = updatedPost;
 
     // Save data to update in object format.
     const dataToUpdate = {
-      post: `${post}`,
+      post: `${post}`, // Convert to string for Redis compatibility.
       bgColor: `${bgColor}`,
       feelings: `${feelings}`,
       privacy: `${privacy}`,
