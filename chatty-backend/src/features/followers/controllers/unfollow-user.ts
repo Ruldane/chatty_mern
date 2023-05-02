@@ -14,10 +14,10 @@ export class Remove {
     }
     // update count in cache
     const removeFollowerFromCache: Promise<void> = followerCache.removeFollowerFromCache(
-      `followers:${req.currentUser!.userId}`,
+      `following:${req.currentUser!.userId}`,
       followeeId
     );
-    const removeFolloweeFromCache: Promise<void> = followerCache.removeFollowerFromCache(`following:${followeeId}`, followerId);
+    const removeFolloweeFromCache: Promise<void> = followerCache.removeFollowerFromCache(`followers:${followeeId}`, followerId);
 
     const followersCount: Promise<void> = followerCache.updateFollowerCountInCache(`${followeeId}`, 'followersCount', -1);
     const followedCount: Promise<void> = followerCache.updateFollowerCountInCache(`${followerId}`, 'followingCount', -1);

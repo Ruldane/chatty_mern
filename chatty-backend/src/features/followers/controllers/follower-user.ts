@@ -15,30 +15,27 @@ const userCache: UserCache = new UserCache();
 export class Add {
   public async follower(req: Request, res: Response): Promise<void> {
     const { followerId } = req.params;
-    if (followerId === req.currentUser!.userId) {
-      res.status(HTTP_STATUS.BAD_REQUEST).json({ message: 'You cannot follow yourself' });
-      return;
-    }
     // update count in cache
     const followersCount: Promise<void> = followerCache.updateFollowerCountInCache(`${followerId}`, 'followersCount', 1);
-    const followedCount: Promise<void> = followerCache.updateFollowerCountInCache(`${req.currentUser!.userId}`, 'followingCount', 1);
-    await Promise.all([followersCount, followedCount]);
-    const cachedFollower: Promise<IUserDocument> = userCache.getUserFromCache(`${followerId}`) as Promise<IUserDocument>;
-    const cachedFollowed: Promise<IUserDocument> = userCache.getUserFromCache(`${req.currentUser!.userId}`) as Promise<IUserDocument>;
-    const response: [IUserDocument, IUserDocument] = await Promise.all([cachedFollower, cachedFollowed]);
+    const followeeCount: Promise<void> = followerCache.updateFollowerCountInCache(`${req.currentUser!.userId}`, 'followingCount', 1);
+    await Promise.all([followersCount, followeeCount]);
+
+    const cachedFollower: Promise<IUserDocument> = userCache.getUserFromCache(followerId) as Promise<IUserDocument>;
+    const cachedFollowee: Promise<IUserDocument> = userCache.getUserFromCache(`${req.currentUser!.userId}`) as Promise<IUserDocument>;
+    const response: [IUserDocument, IUserDocument] = await Promise.all([cachedFollower, cachedFollowee]);
 
     const followerObjectId: ObjectId = new ObjectId();
-    const addFollowedData: IFollowerData = Add.prototype.userData(response[0]);
-    socketIOFollowerObject.emit('add follower', addFollowedData);
-    console.log(req.currentUser);
+    const addFolloweeData: IFollowerData = Add.prototype.userData(response[0]);
+    socketIOFollowerObject.emit('add follower', addFolloweeData);
 
-    const addFollowerToCache: Promise<void> = followerCache.saveFollowerToCache(`followers:${req.currentUser!.userId}`, `${followerId}`);
-    const addFollowedToCache: Promise<void> = followerCache.saveFollowerToCache(`following:${followerId}`, `${req.currentUser!.userId}`);
-    await Promise.all([addFollowerToCache, addFollowedToCache]);
+    const addFollowerToCache: Promise<void> = followerCache.saveFollowerToCache(`following:${req.currentUser!.userId}`, `${followerId}`);
+    const addFolloweeToCache: Promise<void> = followerCache.saveFollowerToCache(`followers:${followerId}`, `${req.currentUser!.userId}`);
+    await Promise.all([addFollowerToCache, addFolloweeToCache]);
+
     followerQueue.addFollowerJob('addFollowerToDB', {
       keyOne: `${req.currentUser!.userId}`,
       keyTwo: `${followerId}`,
-      username: `${req.currentUser!.username}`,
+      username: req.currentUser!.username,
       followerDocumentId: followerObjectId
     });
     res.status(HTTP_STATUS.OK).json({ message: 'Following user now' });
