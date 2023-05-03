@@ -6,6 +6,8 @@ import { IFollowerData } from '@follower/interfaces/follower.interface';
 import { UserCache } from '@service/redis/user.cache';
 import { IUserDocument } from '@user/interfaces/user.interface';
 import mongoose from 'mongoose';
+import { Helpers } from '@global/helpers/helpers';
+import { remove } from 'lodash';
 
 const log: Logger = config.createLogger('reactionsCache');
 const userCache: UserCache = new UserCache();
@@ -115,6 +117,53 @@ export class FollowerCache extends BaseCache {
       return list;
     } catch (error) {
       // Log and throw a server error if an error occurs
+      log.error(error);
+      throw new ServerError('Server error. Try again.');
+    }
+  }
+
+  /**
+   * Update the value of a property for a blocked user in cache.
+   *
+   * @param key - The cache key for the user.
+   * @param prop - The property to update.
+   * @param value - The new value for the property.
+   * @param type - The type of update to perform (block or unblock).
+   * @returns A Promise that resolves when the update is complete.
+   * @throws {ServerError} When an error occurs during the update.
+   */
+  public async updateBlockedUserPropInCache(key: string, prop: string, value: string, type: 'block' | 'unblock'): Promise<void> {
+    try {
+      // Connect to the cache if necessary.
+      if (!this.client.isOpen) {
+        await this.client.connect();
+      }
+
+      // Retrieve the current value of the property for the user.
+      const response: string = (await this.client.HGET(`users:${key}`, prop)) as string;
+
+      // Create a multi-command object to perform multiple cache updates atomically.
+      const multi: ReturnType<typeof this.client.multi> = this.client.multi();
+
+      // Parse the current value of the property as a JSON array of blocked user IDs.
+      let blocked: string[] = Helpers.parseJson(response) as string[];
+
+      // Update the array of blocked user IDs based on the type of update being performed.
+      if (type === 'block') {
+        // Add the new blocked user ID to the array.
+        blocked = [...blocked, value];
+      } else {
+        // Remove the specified blocked user ID from the array.
+        blocked = blocked.filter((item) => item !== value);
+      }
+
+      // Update the property in the cache with the new array of blocked user IDs.
+      await multi.HSET(`users:${key}`, prop, JSON.stringify(blocked));
+
+      // Execute the multi-command object to perform all updates atomically.
+      await multi.exec();
+    } catch (error) {
+      // Log the error and re-throw it as a standard server error.
       log.error(error);
       throw new ServerError('Server error. Try again.');
     }

@@ -29,7 +29,25 @@ withCredentials: true
 }
 
 ### 
-get {{baseUrl}}/{{urlPath}}/user/followers/645145f3e40b8d8fbe7b7abb
+get {{baseUrl}}/{{urlPath}}/user/followers/64514401d8ee7284e819ded3
+Content-Type: application/json
+Accept: : application/json
+withCredentials: true
+
+{
+}
+
+### 
+PUT  {{baseUrl}}/{{urlPath}}/user/block/645145f3e40b8d8fbe7b7abb
+Content-Type: application/json
+Accept: : application/json
+withCredentials: true
+
+{
+}
+
+### 
+PUT  {{baseUrl}}/{{urlPath}}/user/unblock/645145f3e40b8d8fbe7b7abb
 Content-Type: application/json
 Accept: : application/json
 withCredentials: true
