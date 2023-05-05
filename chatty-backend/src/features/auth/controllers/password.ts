@@ -37,9 +37,7 @@ export class Password {
   @joiValidation(passwordSchema)
   public async update(req: Request, res: Response): Promise<void> {
     const { password, confirmPassword } = req.body;
-    console.log(password, confirmPassword);
     const { token } = req.params;
-    console.log(token);
     if (password !== confirmPassword) {
       throw new BadRequestError('Passwords do not match');
     }

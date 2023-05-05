@@ -1,3 +1,4 @@
+import { SocketIONotificationHandler } from './shared/sockets/notification';
 import { Application, json, urlencoded, Response, Request, NextFunction } from 'express';
 import http from 'http';
 import cors from 'cors';
@@ -17,6 +18,7 @@ import { CustomError, IerrorResponse } from '@global/helpers/error-handler';
 import { SocketIOPostHandler } from '@socket/post';
 import { SocketIOFollowerHandler } from '@socket/follower';
 import { SocketIOUserHandler } from '@socket/user';
+import { socketIONotificationObject } from '@socket/notification';
 
 const SERVER_PORT = 5000;
 const log: Logger = config.createLogger('server');
@@ -107,9 +109,11 @@ export class ChattyServer {
     const postSocketHandler: SocketIOPostHandler = new SocketIOPostHandler(io);
     const followerSocketHandler: SocketIOFollowerHandler = new SocketIOFollowerHandler(io);
     const userSocketHandler: SocketIOUserHandler = new SocketIOUserHandler(io);
+    const notificationSocketHandler: SocketIONotificationHandler = new SocketIONotificationHandler();
     userSocketHandler.listen();
     postSocketHandler.listen();
     followerSocketHandler.listen();
+    notificationSocketHandler.listen(io);
   }
 
   private startHttpServer(httpServer: http.Server): void {

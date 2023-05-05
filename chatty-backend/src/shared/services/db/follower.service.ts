@@ -1,20 +1,37 @@
+import { IUserDocument } from '@user/interfaces/user.interface';
 import { IFollowerData, IFollowerDocument } from '@follower/interfaces/follower.interface';
 import { FollowerModel } from '@follower/models/follower.schema';
 import { IQueryComplete, IQueryDeleted } from '@post/interfaces/post.interface';
 import { UserModel } from '@user/models/user.schema';
 import { ObjectId, BulkWriteResult } from 'mongodb';
 import mongoose, { Query } from 'mongoose';
+import { emailQueue } from '@service/queus/email.queue';
+import { notificationTemplate } from '@service/emails/templates/notifications/notification.template';
+import { INotificationDocument, INotificationTemplate } from '@notification/interfaces/notification.interface';
+import { NotificationModel } from '@notification/models/notification.schema';
+import { socketIONotificationObject } from '@socket/notification';
 
 class FollowerService {
+  /**
+   * Adds a follower to the database.
+   * @param userId The ObjectId of the user following.
+   * @param followeeId The ObjectId of the user being followed.
+   * @param username The username of the user following.
+   * @param followerDocumentId The ObjectId of the follower document.
+   */
   public async addFollowerToDB(userId: string, followeeId: string, username: string, followerDocumentId: ObjectId): Promise<void> {
+    // Convert followeeId and userId to ObjectIds.
     const followeeObjectId: ObjectId = new mongoose.Types.ObjectId(followeeId);
     const followerOjectId: ObjectId = new mongoose.Types.ObjectId(userId);
 
+    // Create a new follower document.
     const following = await FollowerModel.create({
       _id: followerDocumentId,
       followeeId: followeeObjectId,
       followerId: followerOjectId
     });
+
+    // Increment the followingCount and followersCount of the user.
     const users: Promise<BulkWriteResult> = UserModel.bulkWrite([
       {
         updateOne: {
@@ -30,17 +47,67 @@ class FollowerService {
       }
     ]);
 
-    await Promise.all([users, UserModel.findOne({ _id: followeeId })]);
+    // Wait for both the following and users promises to resolve.
+    const response: [BulkWriteResult, IUserDocument | null] = await Promise.all([
+      users,
+      UserModel.findOne({ _id: followeeId }).populate('authId')
+    ]);
+
+    // If the followee has notifications enabled, create a new notification document and send a notification email.
+    if (response[1]?.notifications.follows && userId !== followeeId) {
+      // Create a new notification document.
+      const notificationModel: INotificationDocument = new NotificationModel() as INotificationDocument;
+      const notifications = await notificationModel.insertNotification({
+        userFrom: userId,
+        userTo: followeeId,
+        message: `${username} is now following you.`,
+        notificationType: 'follows',
+        entityId: new mongoose.Types.ObjectId(userId),
+        createdItemId: new mongoose.Types.ObjectId(following._id),
+        comment: '',
+        reaction: '',
+        post: '',
+        imgId: '',
+        imgVersion: '',
+        gifUrl: '',
+        createdAt: new Date()
+      });
+
+      // Send the notification to the followee's client with socketio.
+      socketIONotificationObject.emit('insert notification', notifications, { userTo: followeeId });
+
+      // Send the notification to the followee's email queue.
+      const templateParams: INotificationTemplate = {
+        username: response[1].username!,
+        message: `${username} is now following you.`,
+        header: 'Follower notification'
+      };
+      const template: string = notificationTemplate.notificationMessageTemplate(templateParams);
+      emailQueue.addEmailJob('followersEmail', {
+        receiverEmail: response[1].email!,
+        subject: `${username} is following you.`,
+        template
+      });
+    }
   }
 
+  /**
+   * Removes a follower from the database.
+   * @param followeeId The ObjectId of the user being followed.
+   * @param followerId The ObjectId of the user following.
+   */
   public async removeFollowerFromDB(followeeId: string, followerId: string): Promise<void> {
+    // Convert followeeId and followerId to ObjectIds.
     const followeeObjectId: ObjectId = new mongoose.Types.ObjectId(followeeId);
     const followerOjectId: ObjectId = new mongoose.Types.ObjectId(followerId);
 
+    // Delete the follower document.
     const unfollow: Query<IQueryComplete & IQueryDeleted, IFollowerDocument> = FollowerModel.deleteOne({
       followeeId: followeeObjectId,
       followerId: followerOjectId
     });
+
+    // Decrement the followingCount and followersCount of the followee.
     const users: Promise<BulkWriteResult> = UserModel.bulkWrite([
       {
         updateOne: {
@@ -55,6 +122,8 @@ class FollowerService {
         }
       }
     ]);
+
+    // Wait for both the unfollow and users promises to resolve.
     await Promise.all([unfollow, users]);
   }
 

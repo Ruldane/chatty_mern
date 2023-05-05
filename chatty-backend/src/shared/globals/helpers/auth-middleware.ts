@@ -23,7 +23,6 @@ export class AuthMiddleware {
     try {
       const payload: AuthPayload = JWT.verify(req.session.jwt, config.JWT_TOKEN!) as AuthPayload;
       req.currentUser = payload;
-      console.log(payload);
     } catch (error) {
       throw new NotAuthorizedError('Not authorized, please login again.');
     }
