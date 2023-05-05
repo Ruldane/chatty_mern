@@ -8,7 +8,6 @@ import { updatedPost } from '../../../mocks/post.mock';
 
 class PostService {
   public async addPostToDB(userId: string, createdPost: IPostDocument): Promise<void> {
-    console.log('PostService::addPostToDB');
     const post: Promise<IPostDocument> = PostModel.create(createdPost);
     const user: UpdateQuery<IUserDocument> = UserModel.updateOne({ _id: userId }, { $inc: { postsCount: 1 } });
     await Promise.all([post, user]);
