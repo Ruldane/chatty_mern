@@ -58,3 +58,15 @@ withCredentials: true
     "password": "bonbon",
     "confirmPassword": "bonbon"
 }
+
+
+### 
+POST {{baseUrl}}/{{urlPath}}/reset-password/db0a2ce5c3d9b8263fe75971baac5f9646597a54
+Content-Type: application/json
+Accept: : application/json
+withCredentials: true
+
+{
+    "password": "bonbon",
+    "confirmPassword": "bonbon"
+}

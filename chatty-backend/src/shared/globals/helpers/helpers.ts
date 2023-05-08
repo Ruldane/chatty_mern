@@ -55,4 +55,20 @@ export class Helpers {
       return json;
     }
   }
+
+  /**
+   * Checks if the given string is a valid data URL or not.
+   *
+   * A data URL is a URI scheme that allows including data in-line in web pages as if they were external resources.
+   * For further information on data URL scheme, see https://en.wikipedia.org/wiki/Data_URI_scheme
+   *
+   * @param value The string to check.
+   * @return {boolean} true if the string is a valid data URL; false otherwise.
+   */
+  static isDataUrl(value: string): boolean {
+    // Regular expression to match data urls
+    const dataUrlRegex = /^\s*data:([a-z]+\/[a-z0-9-+.]+(;[a-z-]+=[a-z0-9-]+)?)?(;base64)?,([a-z0-9!$&',()*+;=\-._~:@\\/?%\s]*)\s*$/i;
+    // Test if the given string matches the data URL pattern
+    return dataUrlRegex.test(value);
+  }
 }
