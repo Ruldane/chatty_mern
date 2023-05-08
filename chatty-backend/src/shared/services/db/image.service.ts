@@ -19,6 +19,7 @@ class ImageService {
       },
       { $set: { profilePicture: url } }
     ).exec();
+
     await this.addImage(userId, imgId, imgVersion, 'profile');
   }
 
@@ -65,7 +66,7 @@ class ImageService {
   }
 
   public async getImageByBackgroundId(backgroundId: string): Promise<IFileImageDocument> {
-    const image: IFileImageDocument = (await ImageModel.findOne({ _id: backgroundId }).exec()) as IFileImageDocument;
+    const image: IFileImageDocument = (await ImageModel.findOne({ backgroundId }).exec()) as IFileImageDocument;
     return image;
   }
 

@@ -1,4 +1,4 @@
-import { ISocialLinks, INotificationSettings } from './../../../features/user/interfaces/user.interface';
+import { ISocialLinks, INotificationSettings } from '@user/interfaces/user.interface';
 import { BaseCache } from '@service/redis/base.cache';
 import { IUserDocument } from '@user/interfaces/user.interface';
 import Logger from 'bunyan';
