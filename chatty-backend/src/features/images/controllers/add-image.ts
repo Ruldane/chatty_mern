@@ -1,4 +1,3 @@
-import { IFileImageDocument } from '@image/interfaces/image.interface';
 import { Helpers } from '@global/helpers/helpers';
 import { IBgUploadResponse } from './../interfaces/image.interface';
 import { imageQueue } from './../../../shared/services/queus/image.queue';

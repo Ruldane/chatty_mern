@@ -36,3 +36,11 @@ Accept: : application/json
 withCredentials: true
 
 {}
+
+### 
+get {{baseUrl}}/{{urlPath}}/images/64514401d8ee7284e819ded3
+Content-Type: application/json
+Accept: : application/json
+withCredentials: true
+
+{}
