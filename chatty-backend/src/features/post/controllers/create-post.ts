@@ -7,9 +7,10 @@ import { IPostDocument } from '@post/interfaces/post.interface';
 import { PostCache } from '@service/redis/post.cache';
 import { socketIOPostObject } from '@socket/post';
 import { postQueue } from '@service/queus/post.queue';
-import { UploadApiOptions, UploadApiResponse } from 'cloudinary';
+import { UploadApiResponse } from 'cloudinary';
 import { BadRequestError } from '@global/helpers/error-handler';
 import { uploads } from '@global/helpers/cloudinary-upload';
+import { imageQueue } from '@service/queus/image.queue';
 
 const postCache: PostCache = new PostCache();
 
@@ -50,15 +51,21 @@ export class Create {
         angry: 0
       }
     } as IPostDocument;
-    // This code sends a new post to the server through the socketIO connection
+    // Send the newly created post to the server via socketIO connection
     socketIOPostObject.emit('add post', createdPost);
+
+    // Save the newly created post to cache
     await postCache.savePostToCache({
       key: postObjectId,
       currentUserId: `${req.currentUser!.userId}`,
       uId: `${req.currentUser!.uId}`,
       createdPost
     });
+
+    // Add the newly created post to the post queue to eventually save to database
     postQueue.addPostJob('addPostToDB', { key: req.currentUser!.userId, value: createdPost });
+
+    // Respond back to the client with HTTP status code 201 and newly created post
     res.status(HTTP_STATUS.CREATED).json({ message: 'Post created successfully', post: createdPost });
   }
 
@@ -66,11 +73,15 @@ export class Create {
   public async postWithImage(req: Request, res: Response): Promise<void> {
     const { post, bgColor, privacy, gifUrl, profilePicture, feelings, image } = req.body;
     const result: UploadApiResponse = (await uploads(image)) as UploadApiResponse;
+
+    // If image was not properly uploaded, throw BadRequestError with message
     if (!result?.public_id) {
       throw new BadRequestError(result.message);
     }
 
     const postObjectId: ObjectId = new ObjectId();
+
+    // Construct the new post document from request parameters and uploaded image result
     const createdPost: IPostDocument = {
       _id: postObjectId,
       userId: req.currentUser!.userId,
@@ -96,15 +107,29 @@ export class Create {
         angry: 0
       }
     } as IPostDocument;
-    // This code sends a new post to the server through the socketIO connection
+
+    // Send the newly created post to the server via socketIO connection
     socketIOPostObject.emit('add post', createdPost);
+
+    // Save the newly created post to cache
     await postCache.savePostToCache({
       key: postObjectId,
       currentUserId: `${req.currentUser!.userId}`,
       uId: `${req.currentUser!.uId}`,
       createdPost
     });
+
+    // Add the newly created post to the post queue to eventually save to database
     postQueue.addPostJob('addPostToDB', { key: req.currentUser!.userId, value: createdPost });
+
+    // Add the image to the image queue to eventually save to database
+    imageQueue.addImageJob('addImageToDB', {
+      key: `${req.currentUser!.userId}`,
+      imgId: result.public_id,
+      imgVersion: result.version.toString()
+    });
+
+    // Respond back to the client with HTTP status code 201 and newly created post
     res.status(HTTP_STATUS.CREATED).json({ message: 'Post created with image successfully', post: createdPost });
   }
 }

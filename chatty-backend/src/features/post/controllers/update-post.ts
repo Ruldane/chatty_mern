@@ -10,11 +10,20 @@ import { IPostDocument } from '@post/interfaces/post.interface';
 import { UploadApiResponse } from 'cloudinary';
 import { uploads } from '@global/helpers/cloudinary-upload';
 import { BadRequestError } from '@global/helpers/error-handler';
+import { imageQueue } from '@service/queus/image.queue';
 
 const postCache: PostCache = new PostCache();
 
 export class Update {
   @joiValidation(postSchema)
+  /**
+   * Handles updating a post by updating the post in MongoDB cache, emitting an update event to the
+   * socket.io server, and adding the update job to the post queue.
+   * @param req - Express request object containing the post details in the request body and the
+   * postId parameter in the request parameters
+   * @param res - Express response object that sends a success response if the update is successful
+   * @returns - A Promise that resolves to void.
+   **/
   public async post(req: Request, res: Response): Promise<void> {
     // Get the post, background color, feelings, privacy, gif url, image version, image id, and profile picture from the request body.
     const { post, bgColor, feelings, privacy, gifUrl, imgVersion, imgId, profilePicture } = req.body;
@@ -109,6 +118,12 @@ export class Update {
     // 7. send the new post to the client-side
     postQueue.addPostJob('updatePostInDB', { key: postId, value: postUpdated });
     // 8. add the post to the queue to save it in the database
+    // Add the image to the image queue to eventually save to database
+    imageQueue.addImageJob('addImageToDB', {
+      key: `${req.currentUser!.userId}`,
+      imgId: result.public_id,
+      imgVersion: result.version.toString()
+    });
     return result;
   }
 }

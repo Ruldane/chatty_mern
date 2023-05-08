@@ -1,3 +1,4 @@
+import { imagesRoutes } from './features/images/routes/imageRoutes';
 import { notificationRoutes } from '@notification/routes/notificationRoutes';
 import { authRoutes } from '@auth/routes/authRoutes';
 import { currentUserRoutes } from '@auth/routes/currentRoutes';
@@ -22,6 +23,7 @@ export default (app: Application): void => {
     app.use(BASE_PATH, authMiddleware.verifyUser, commentRoutes.routes());
     app.use(BASE_PATH, authMiddleware.verifyUser, followerRoutes.routes());
     app.use(BASE_PATH, authMiddleware.verifyUser, notificationRoutes.routes());
+    app.use(BASE_PATH, authMiddleware.verifyUser, imagesRoutes.routes());
   };
   routes();
 };
