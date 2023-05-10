@@ -23,6 +23,7 @@
     "paths": {
       "@user/*": ["src/features/user/*"],
       "@post/*": ["src/features/post/*"],
+      "@chat/*": ["src/features/chat/*"],
       "@reaction/*": ["src/features/reactions/*"],
       "@image/*": ["src/features/images/*"],
       "@notification/*": ["src/features/notifications/*"],
