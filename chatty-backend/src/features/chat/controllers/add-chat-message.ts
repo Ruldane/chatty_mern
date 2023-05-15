@@ -16,16 +16,22 @@ import { INotificationTemplate } from '@notification/interfaces/notification.int
 import { emailQueue } from '@service/queus/email.queue';
 import { notificationTemplate } from '@service/emails/templates/notifications/notification.template';
 import { MessageCache } from '@service/redis/message.cache';
+import { chatQueue } from '@service/queus/chat.queue';
 
 const userCache: UserCache = new UserCache();
 const messageCache: MessageCache = new MessageCache();
 
 export class Add {
   @joiValidation(addChatSchema)
+  /**
+   * Sends a message to a user and adds it to the conversation
+   * @param {Object} req - The request object
+   * @param {Object} res - The response object
+   * @returns {Promise<void>}
+   */
   public async message(req: Request, res: Response): Promise<void> {
     const {
       conversationId,
-      senderId,
       receiverId,
       receiverUsername,
       receiverAvatarColor,
@@ -52,7 +58,7 @@ export class Add {
     }
     const messageData: IMessageData = {
       _id: `${messageObjectId}`,
-      conversationId: new mongoose.Types.ObjectId(conversationId),
+      conversationId: new mongoose.Types.ObjectId(conversationOjectId),
       receiverId,
       receiverUsername,
       receiverAvatarColor,
@@ -81,10 +87,37 @@ export class Add {
       });
     }
     // message for sender
-    await messageCache.addChatListToCache(`${req.currentUser!.userId}`, `${receiverId}`, `${conversationId}`);
+    await messageCache.addChatListToCache(`${req.currentUser!.userId}`, `${receiverId}`, `${conversationOjectId}`);
     // message for receiver
-    await messageCache.addChatListToCache(`${receiverId}`, `${req.currentUser!.userId}`, `${conversationId}`);
+    await messageCache.addChatListToCache(`${receiverId}`, `${req.currentUser!.userId}`, `${conversationOjectId}`);
+    // add message to cache messages list
+    await messageCache.addChatMessageToCache(`${conversationOjectId}`, messageData);
     res.status(HTTP_STATUS.OK).json({ message: 'Message sent successfully', conversationId: conversationOjectId });
+    chatQueue.addChatJob('addChatMessageToDB', messageData);
+  }
+
+  /**
+   * Adds chat users to the cache
+   * @param {Object} req - The request object
+   * @param {Object} res - The response object
+   * @returns {Promise<void>}
+   */
+  public async addChatUsers(req: Request, res: Response): Promise<void> {
+    const chatUsers = await messageCache.addChatUsersToCache(req.body);
+    socketIOChatObject.emit('add chat users', chatUsers);
+    res.status(HTTP_STATUS.OK).json({ message: 'Users Added' });
+  }
+
+  /**
+   * Removes chat users from the cache
+   * @param {Object} req - The request object
+   * @param {Object} res - The response object
+   * @returns {Promise<void>}
+   */
+  public async removeChatUsers(req: Request, res: Response): Promise<void> {
+    const chatUsers = await messageCache.removeChatUsersToCache(req.body);
+    socketIOChatObject.emit('add chat users', chatUsers);
+    res.status(HTTP_STATUS.OK).json({ message: 'Users removed' });
   }
 
   private emitSocketIoEvent(data: IMessageData): void {

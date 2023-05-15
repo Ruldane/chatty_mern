@@ -1,3 +1,4 @@
+import { IMessageData } from './../../../features/chat/interfaces/chat.interface';
 import Queue, { Job } from 'bull';
 import Logger from 'bunyan';
 import { createBullBoard, ExpressAdapter } from '@bull-board/express';
@@ -11,6 +12,7 @@ import { ICommentJob } from '@comment/interfaces/comment.interface';
 import { IFollowerJobData } from '@follower/interfaces/follower.interface';
 import { INotificationJobData } from '@notification/interfaces/notification.interface';
 import { IFileImageJobData } from '@image/interfaces/image.interface';
+import { IChatJobData } from '@chat/interfaces/chat.interface';
 
 type IBaseJobData =
   | IAuthJob
@@ -21,7 +23,9 @@ type IBaseJobData =
   | IFollowerJobData
   | IFollowerJobData
   | INotificationJobData
-  | IFileImageJobData;
+  | IFileImageJobData
+  | IChatJobData
+  | IMessageData;
 
 let bullAdapters: BullAdapter[] = [];
 

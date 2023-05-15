@@ -1,0 +1,40 @@
+@baseUrl =http://localhost:5000
+@urlPath =api/v1
+
+### 
+POST {{baseUrl}}/{{urlPath}}/chat/message
+Content-Type: application/json
+Accept: : application/json
+withCredentials: true
+
+{
+      "conversationId":"645fb3a05e620fe791e993ef",
+      "receiverId":"645145f3e40b8d8fbe7b7abb",
+      "receiverUsername":"HIHEYHOA",
+      "receiverAvatarColor":"red",
+      "receiverProfilePicture":"https://res.cloudinary.com/dk2jrgxzd/image/upload/v1683537609/64514401d8ee7284e819ded3",
+      "body":"hello my friend :)",
+      "gifUrl":"",
+      "isRead":true,
+      "selectedImage":""
+}
+
+
+### 
+POST {{baseUrl}}/{{urlPath}}/chat/message/add-chat-users
+Content-Type: application/json
+Accept: : application/json
+withCredentials: true
+
+{
+      "userOne":"64514401d8ee7284e819ded3",
+      "userTwo":"645145f3e40b8d8fbe7b7abb"
+}
+
+### 
+GET {{baseUrl}}/{{urlPath}}/chat/message/conversation-list
+Content-Type: application/json
+Accept: : application/json
+withCredentials: true
+
+{}
