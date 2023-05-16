@@ -8,7 +8,7 @@ Accept: : application/json
 withCredentials: true
 
 {
-      "conversationId":"645fb3a05e620fe791e993ef",
+      "conversationId":"64514401d8ee7284e819ded3",
       "receiverId":"645145f3e40b8d8fbe7b7abb",
       "receiverUsername":"HIHEYHOA",
       "receiverAvatarColor":"red",
@@ -47,3 +47,10 @@ withCredentials: true
 
 {}
 
+### 
+DELETE  {{baseUrl}}/{{urlPath}}/chat/message/mark-as-deleted/6463bbaa308e19808e48acc9/645145f3e40b8d8fbe7b7abb/64514401d8ee7284e819ded3/deleteForMe
+Content-Type: application/json
+Accept: : application/json
+withCredentials: true
+
+{}

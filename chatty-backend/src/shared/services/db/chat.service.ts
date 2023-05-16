@@ -3,6 +3,7 @@ import { IMessageData } from '@chat/interfaces/chat.interface';
 import { ConversationModel } from '@chat/models/conversation.schema';
 import { MessageModel } from '@chat/models/chat.schema';
 import { ObjectId } from 'mongodb';
+import mongoose from 'mongoose';
 
 class ChatService {
   /**
@@ -89,6 +90,14 @@ class ChatService {
     };
     const messages: IMessageData[] = await MessageModel.aggregate([{ $match: query }, { $sort: sort }]);
     return messages;
+  }
+
+  public async markMessageAsDeleted(messageId: string, type: string): Promise<void> {
+    if (type === 'deleteForMe') {
+      await MessageModel.updateOne({ _id: messageId }, { $set: { deleteForMe: true } }).exec();
+    } else {
+      await MessageModel.updateOne({ _id: messageId }, { $set: { deleteForMe: true, deleteForEveryone: true } }).exec();
+    }
   }
 }
 
