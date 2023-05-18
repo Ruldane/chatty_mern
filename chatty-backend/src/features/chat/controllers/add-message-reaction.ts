@@ -9,6 +9,13 @@ import mongoose from 'mongoose';
 const messageCache: MessageCache = new MessageCache();
 
 export class Message {
+  /**
+   * Asynchronously updates a message's reaction and emits a socket event.
+   *
+   * @param {Request} req - the HTTP request object
+   * @param {Response} res - the HTTP response object
+   * @return {Promise<void>} - a Promise that resolves with no value
+   */
   public async reaction(req: Request, res: Response): Promise<void> {
     const { conversationId, messageId, reaction, type } = req.body;
     const updatedMessage: IMessageData = await messageCache.updateMessageReaction(
@@ -18,14 +25,17 @@ export class Message {
       `${req.currentUser!.username}`,
       type
     );
-    socketIOChatObject.emit('message reaction', updatedMessage);
-    chatQueue.addChatJob('updateMessageReaction', {
-      messageId: new mongoose.Types.ObjectId(messageId),
-      senderName: req.currentUser!.username,
-      reaction,
-      type
-    });
-
-    res.status(HTTP_STATUS.OK).json({ message: 'Messages reaction added' });
+    if (updatedMessage) {
+      socketIOChatObject.emit('message reaction', updatedMessage);
+      chatQueue.addChatJob('updateMessageReaction', {
+        messageId: new mongoose.Types.ObjectId(messageId),
+        senderName: req.currentUser!.username,
+        reaction,
+        type
+      });
+      res.status(HTTP_STATUS.OK).json({ message: 'Messages reaction added' });
+    } else {
+      res.status(HTTP_STATUS.NOT_FOUND).json({ message: 'Message not found' });
+    }
   }
 }
