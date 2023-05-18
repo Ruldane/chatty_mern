@@ -72,7 +72,14 @@ class AuthService {
     const user: IAuthDocument = (await AuthModel.findOne({ email: Helpers.loverCase(email) }).exec()) as IAuthDocument;
     return user;
   }
-
+  /**
+   * Retrieves an authenticated user by their password reset token.
+   *
+   * @param {string} token - The password reset token to be used in the search.
+   * @return {Promise<IAuthDocument>} A promise that resolves with the authenticated user document
+   * that has the matching password reset token. If there is no matching document, the promise will
+   * resolve with a value of null.
+   */
   public async getAuthUserByPasswordToken(token: string): Promise<IAuthDocument> {
     const user: IAuthDocument = (await AuthModel.findOne({
       passwordResetToken: token,

@@ -1,0 +1,80 @@
+@baseUrl =http://localhost:5000
+@urlPath =api/v1
+
+### 
+POST {{baseUrl}}/{{urlPath}}/chat/message
+Content-Type: application/json
+Accept: : application/json
+withCredentials: true
+
+{
+      "conversationId":"64514401d8ee7284e819ded3",
+      "receiverId":"64514401d8ee7284e819ded3",
+      "receiverUsername":"HIHEYHOA",
+      "receiverAvatarColor":"red",
+      "receiverProfilePicture":"https://res.cloudinary.com/dk2jrgxzd/image/upload/v1683537609/64514401d8ee7284e819ded3",
+      "body":"hello my broooozzzzzzzzzoooo sss:)",
+      "gifUrl":"",
+      "isRead":true,
+      "selectedImage":""
+}
+
+
+### 
+POST {{baseUrl}}/{{urlPath}}/chat/message/add-chat-users
+Content-Type: application/json
+Accept: : application/json
+withCredentials: true
+
+{
+      "userOne":"64514401d8ee7284e819ded3",
+      "userTwo":"645145f3e40b8d8fbe7b7abb"
+}
+
+### 
+GET {{baseUrl}}/{{urlPath}}/chat/message/conversation-list
+Content-Type: application/json
+Accept: : application/json
+withCredentials: true
+
+{}
+
+### 
+GET {{baseUrl}}/{{urlPath}}/chat/message/user/645145f3e40b8d8fbe7b7abb
+Content-Type: application/json
+Accept: : application/json
+withCredentials: true
+
+{}
+
+### 
+DELETE  {{baseUrl}}/{{urlPath}}/chat/message/mark-as-deleted/6463bbaa308e19808e48acc9/645145f3e40b8d8fbe7b7abb/64514401d8ee7284e819ded3/deleteForMe
+Content-Type: application/json
+Accept: : application/json
+withCredentials: true
+
+{}
+
+###
+PUT   {{baseUrl}}/{{urlPath}}/chat/message/mark-as-read
+Content-Type: application/json
+Accept: : application/json
+withCredentials: true
+
+{
+      "senderId": "645145f3e40b8d8fbe7b7abb",
+      "receiverId": "64514401d8ee7284e819ded3"
+}
+
+###
+PUT   {{baseUrl}}/{{urlPath}}/chat/message/reaction
+Content-Type: application/json
+Accept: : application/json
+withCredentials: true
+
+{
+      "conversationId": "64514401d8ee7284e819ded3",
+      "messageId": "6464e1495a488a3c8ab3136f",
+      "reaction": "happy",
+      "type": "add"
+}

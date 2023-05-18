@@ -1,3 +1,4 @@
+import { SocketIoChatHandler } from './shared/sockets/chat';
 import { SocketIONotificationHandler } from './shared/sockets/notification';
 import { Application, json, urlencoded, Response, Request, NextFunction } from 'express';
 import http from 'http';
@@ -109,11 +110,13 @@ export class ChattyServer {
     const postSocketHandler: SocketIOPostHandler = new SocketIOPostHandler(io);
     const followerSocketHandler: SocketIOFollowerHandler = new SocketIOFollowerHandler(io);
     const userSocketHandler: SocketIOUserHandler = new SocketIOUserHandler(io);
+    const socketIOChatHandler: SocketIoChatHandler = new SocketIoChatHandler(io);
     const notificationSocketHandler: SocketIONotificationHandler = new SocketIONotificationHandler();
     const socketIOImageHandler: SocketIOImageHandler = new SocketIOImageHandler();
     userSocketHandler.listen();
     postSocketHandler.listen();
     followerSocketHandler.listen();
+    socketIOChatHandler.listen();
     notificationSocketHandler.listen(io);
     socketIOImageHandler.listen(io);
   }
