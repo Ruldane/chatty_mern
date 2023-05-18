@@ -70,6 +70,19 @@ export class Create {
   }
 
   @joiValidation(postWithImageSchema)
+  /**
+   * Sends a POST request to the server to create a new post with an image. The function extracts
+   * the necessary data from the request body, uploads the image to the server using the 'uploads'
+   * function, constructs a new post document, emits the newly created post to the server via the
+   * 'socketIOPostObject' connection, save the newly created post to the cache, adds the newly created
+   * post to the post queue to eventually save to the database, adds the image to the image queue to
+   * eventually save to the database, and responds with HTTP status code 201 and the newly created post.
+   *
+   * @param {Request} req - The express request object.
+   * @param {Response} res - The express response object.
+   * @return {Promise<void>} Returns a Promise that resolves with undefined when the async operations
+   * are complete.
+   */
   public async postWithImage(req: Request, res: Response): Promise<void> {
     const { post, bgColor, privacy, gifUrl, profilePicture, feelings, image } = req.body;
     const result: UploadApiResponse = (await uploads(image)) as UploadApiResponse;

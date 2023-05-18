@@ -4,6 +4,7 @@ import { MessageCache } from '@service/redis/message.cache';
 import { IMessageData } from '@chat/interfaces/chat.interface';
 import { socketIOChatObject } from '@socket/chat';
 import { chatQueue } from '@service/queus/chat.queue';
+import mongoose from 'mongoose';
 
 const messageCache: MessageCache = new MessageCache();
 
@@ -14,7 +15,7 @@ export class Delete {
     socketIOChatObject.emit('message read', updatedMessage);
     socketIOChatObject.emit('chat list', updatedMessage);
     chatQueue.addChatJob('markMessageAsDeletedInDB', {
-      messageId: messageId,
+      messageId: new mongoose.Types.ObjectId(messageId),
       type
     });
 

@@ -81,23 +81,77 @@ class ChatService {
     return messages;
   }
 
+  /**
+   * Retrieves messages between two users.
+   * @param senderId The ID of the user who sent the messages.
+   * @param receiverId The ID of the user who received the messages.
+   * @param sort An object specifying the sorting order of the messages.
+   * @returns An array of messages between the two users.
+   */
   public async getMessages(senderId: ObjectId, receiverId: ObjectId, sort: Record<string, 1 | -1>): Promise<IMessageData[]> {
+    // Construct the query to retrieve messages between the two users
     const query = {
       $or: [
         { senderId, receiverId },
         { senderId: receiverId, receiverId: senderId }
       ]
     };
+
+    // Retrieve messages matching the query and sort them according to the given sort order
     const messages: IMessageData[] = await MessageModel.aggregate([{ $match: query }, { $sort: sort }]);
+
+    // Return the retrieved messages
     return messages;
   }
 
-  public async markMessageAsDeleted(messageId: string, type: string): Promise<void> {
+  /**
+   * Marks a message as deleted based on the given message ID and type.
+   *
+   * @param {ObjectId} messageId - The ID of the message to mark as deleted.
+   * @param {string} type - The type of deletion to perform ('deleteForMe' or 'deleteForEveryone').
+   * @return {Promise<void>} A Promise that resolves when the message has been marked as deleted.
+   */
+  public async markMessageAsDeleted(messageId: ObjectId, type: string): Promise<void> {
     if (type === 'deleteForMe') {
       await MessageModel.updateOne({ _id: messageId }, { $set: { deleteForMe: true } }).exec();
     } else {
       await MessageModel.updateOne({ _id: messageId }, { $set: { deleteForMe: true, deleteForEveryone: true } }).exec();
     }
+  }
+
+  /**
+   * Updates a message's reaction based on the provided message ID, sender name, reaction, and type.
+   *
+   * @param {ObjectId} messageId - The ID of the message to update.
+   * @param {string} senderName - The name of the sender of the reaction.
+   * @param {string} reaction - The reaction to add or remove from the message.
+   * @param {'add' | 'remove'} type - The type of operation to perform on the reaction.
+   * @return {Promise<void>} A Promise that resolves when the update operation is complete.
+   */
+  public async updateMessageReaction(messageId: ObjectId, senderName: string, reaction: string, type: 'add' | 'remove'): Promise<void> {
+    if (type === 'add') {
+      await MessageModel.updateOne({ _id: messageId }, { $push: { reaction: { senderName, type: reaction } } }).exec();
+    } else {
+      await MessageModel.updateOne({ _id: messageId }, { $pull: { reaction: { senderName } } }).exec();
+    }
+  }
+
+  /**
+   * Marks all unread messages between two users as read.
+   * @param receiverId The ID of the message receiver.
+   * @param senderId The ID of the message sender.
+   * @returns Promise that resolves when all messages have been marked as read.
+   */
+  public async markMessagesAsRead(receiverId: ObjectId, senderId: ObjectId): Promise<void> {
+    // Build query to find all messages between sender and receiver that are unread.
+    const query = {
+      $or: [
+        { senderId, receiverId, isRead: false },
+        { senderId: receiverId, receiverId: senderId, isRead: false }
+      ]
+    };
+    // Update all matching messages to be marked as read.
+    await MessageModel.updateMany(query, { $set: { isRead: true } }).exec();
   }
 }
 

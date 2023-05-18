@@ -9,11 +9,11 @@ withCredentials: true
 
 {
       "conversationId":"64514401d8ee7284e819ded3",
-      "receiverId":"645145f3e40b8d8fbe7b7abb",
+      "receiverId":"64514401d8ee7284e819ded3",
       "receiverUsername":"HIHEYHOA",
       "receiverAvatarColor":"red",
       "receiverProfilePicture":"https://res.cloudinary.com/dk2jrgxzd/image/upload/v1683537609/64514401d8ee7284e819ded3",
-      "body":"hello my broooozzzzzzzzzoooo :)",
+      "body":"hello my broooozzzzzzzzzoooo sss:)",
       "gifUrl":"",
       "isRead":true,
       "selectedImage":""
@@ -54,3 +54,27 @@ Accept: : application/json
 withCredentials: true
 
 {}
+
+###
+PUT   {{baseUrl}}/{{urlPath}}/chat/message/mark-as-read
+Content-Type: application/json
+Accept: : application/json
+withCredentials: true
+
+{
+      "senderId": "645145f3e40b8d8fbe7b7abb",
+      "receiverId": "64514401d8ee7284e819ded3"
+}
+
+###
+PUT   {{baseUrl}}/{{urlPath}}/chat/message/reaction
+Content-Type: application/json
+Accept: : application/json
+withCredentials: true
+
+{
+      "conversationId": "64514401d8ee7284e819ded3",
+      "messageId": "6464e1495a488a3c8ab3136f",
+      "reaction": "happy",
+      "type": "add"
+}

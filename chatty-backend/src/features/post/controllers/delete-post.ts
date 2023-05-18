@@ -7,6 +7,14 @@ import { postQueue } from '@service/queus/post.queue';
 const postCache: PostCache = new PostCache();
 
 export class Delete {
+  /**
+   * Asynchronously sends a delete event to a socket.io server, deletes a post from cache, adds a job to the
+   * queue to delete the post from the database, and sends a success response.
+   *
+   * @param {Request} req - the request object containing the parameters and user information
+   * @param {Response} res - the response object to send back to the client
+   * @return {Promise<void>} - a promise that resolves when the function completes successfully
+   */
   public async post(req: Request, res: Response): Promise<void> {
     // Emit the delete event to the socket.io server
     socketIOPostObject.emit('delete', req.params.id);
