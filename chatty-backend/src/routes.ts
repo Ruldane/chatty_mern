@@ -10,12 +10,19 @@ import { postRoutes } from '@post/routes/postRoutes';
 import { reactionRoutes } from '@reaction/routes/reactionRoutes';
 import { serverAdapter } from '@service/queus/base.queue';
 import { Application } from 'express';
+import { userRoutes } from '@user/routes/userRoutes';
+import { healthRoutes } from '@user/routes/healthRoutes';
 
 const BASE_PATH = '/api/v1';
 
 export default (app: Application): void => {
   const routes = () => {
     app.use('/queues', serverAdapter.getRouter());
+    app.use('', healthRoutes.health());
+    app.use('', healthRoutes.env());
+    app.use('', healthRoutes.instance());
+    app.use('', healthRoutes.fiboRoutes());
+
     app.use(BASE_PATH, authRoutes.routes());
     app.use(BASE_PATH, authRoutes.signoutRoute());
     app.use(BASE_PATH, authMiddleware.verifyUser, currentUserRoutes.routes());
@@ -26,6 +33,7 @@ export default (app: Application): void => {
     app.use(BASE_PATH, authMiddleware.verifyUser, notificationRoutes.routes());
     app.use(BASE_PATH, authMiddleware.verifyUser, imagesRoutes.routes());
     app.use(BASE_PATH, authMiddleware.verifyUser, chatRoutes.routes());
+    app.use(BASE_PATH, authMiddleware.verifyUser, userRoutes.routes());
   };
   routes();
 };

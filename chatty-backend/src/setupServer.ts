@@ -21,7 +21,7 @@ import { SocketIOFollowerHandler } from '@socket/follower';
 import { SocketIOUserHandler } from '@socket/user';
 import { SocketIOImageHandler } from '@socket/image';
 
-const SERVER_PORT = 5000;
+const SERVER_PORT = 5001;
 const log: Logger = config.createLogger('server');
 
 export class ChattyServer {

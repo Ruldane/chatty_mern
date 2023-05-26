@@ -18,6 +18,45 @@ class UserWorker {
       done(error as Error);
     }
   }
+
+  async updateUserInfo(job: Job, done: DoneCallback): Promise<void> {
+    try {
+      const { key, value } = job.data;
+      // add method to send data to database
+      await userService.updateUserInfo(key, value);
+      job.progress(100);
+      done(null, job.data);
+    } catch (error) {
+      log.error('AuthWorker error: ', error);
+      done(error as Error);
+    }
+  }
+
+  async updateSocialLinks(job: Job, done: DoneCallback): Promise<void> {
+    try {
+      const { key, value } = job.data;
+      // add method to send data to database
+      await userService.updateSocialLinks(key, value);
+      job.progress(100);
+      done(null, job.data);
+    } catch (error) {
+      log.error('AuthWorker error: ', error);
+      done(error as Error);
+    }
+  }
+
+  async updateNotificationSettings(job: Job, done: DoneCallback): Promise<void> {
+    try {
+      const { key, value } = job.data;
+      // add method to send data to database
+      await userService.updateNotificationSettings(key, value);
+      job.progress(100);
+      done(null, job.data);
+    } catch (error) {
+      log.error('AuthWorker error: ', error);
+      done(error as Error);
+    }
+  }
 }
 
 export const userWorker: UserWorker = new UserWorker();

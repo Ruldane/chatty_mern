@@ -5,9 +5,11 @@ import Logger from 'bunyan';
 import { config } from '@root/config';
 import { ServerError } from '@global/helpers/error-handler';
 import { Helpers } from '@global/helpers/helpers';
+import { RedisCommandRawReply } from '@redis/client/dist/lib/commands';
 
 const log: Logger = config.createLogger('userCache');
 type UserItem = string | ISocialLinks | INotificationSettings;
+type UserCacheMultiType = string | number | Buffer | RedisCommandRawReply[] | IUserDocument | IUserDocument[];
 
 export class UserCache extends BaseCache {
   constructor() {
@@ -119,6 +121,102 @@ export class UserCache extends BaseCache {
     }
   }
 
+  public async getUsersFromCache(start: number, end: number, excludedUserKey: string): Promise<IUserDocument[]> {
+    try {
+      if (!this.client.isOpen) {
+        await this.client.connect();
+      }
+      const response: string[] = await this.client.ZRANGE('user', start, end, { REV: true });
+      const multi: ReturnType<typeof this.client.multi> = this.client.multi();
+      for (const key of response) {
+        if (key !== excludedUserKey) {
+          multi.HGETALL(`users:${key}`);
+        }
+      }
+      const replies: UserCacheMultiType = (await multi.exec()) as UserCacheMultiType;
+      const userReplies: IUserDocument[] = [];
+      for (const reply of replies as IUserDocument[]) {
+        reply.createdAt = new Date(Helpers.parseJson(`${reply.createdAt}`));
+        reply.postsCount = Helpers.parseJson(`${reply.postsCount}`);
+        reply.blocked = Helpers.parseJson(`${reply.blocked}`);
+        reply.blockedBy = Helpers.parseJson(`${reply.blockedBy}`);
+        reply.notifications = Helpers.parseJson(`${reply.notifications}`);
+        reply.social = Helpers.parseJson(`${reply.social}`);
+        reply.followersCount = Helpers.parseJson(`${reply.followersCount}`);
+        reply.followingCount = Helpers.parseJson(`${reply.followingCount}`);
+        reply.bgImageId = Helpers.parseJson(`${reply.bgImageId}`);
+        reply.bgImageVersion = Helpers.parseJson(`${reply.bgImageVersion}`);
+        reply.profilePicture = Helpers.parseJson(`${reply.profilePicture}`);
+
+        userReplies.push(reply);
+      }
+      return userReplies;
+    } catch (error) {
+      log.error(error);
+      throw new ServerError('Server error. Try again.');
+    }
+  }
+
+  /**
+   * Retrieves a list of random users from the cache, excluding the user with the given username and the current user's followers.
+   * @param userId The ID of the current user.
+   * @param excludedUsername The username of the user to exclude from the list.
+   * @returns A Promise of an array of IUserDocument objects representing the random users.
+   */
+  public async getRandomUsersFromCache(userId: string, excludedUsername: string): Promise<IUserDocument[]> {
+    try {
+      // Connect to the Redis cache if not already connected
+      if (!this.client.isOpen) {
+        await this.client.connect();
+      }
+
+      // Initialize an empty array to store the resulting user documents
+      const replies: IUserDocument[] = [];
+
+      // Retrieve the current user's followers and all users from the cache
+      const followers: string[] = await this.client.LRANGE(`followers${userId}`, 0, -1);
+      const users: string[] = await this.client.ZRANGE('user', 0, -1);
+
+      // Shuffle the list of users and select the first 10
+      const randomUsers: string[] = Helpers.shuffle(users).slice(0, 10);
+
+      // Iterate over the selected users and retrieve their user documents from the cache
+      for (const key of randomUsers) {
+        // Exclude the user if they are a follower of the current user
+        const followerIndex = followers.indexOf(key);
+        if (followerIndex < 0) {
+          // Retrieve the user document from the cache and add it to the replies array
+          const userHash: IUserDocument = (await this.client.HGETALL(`users:${key}`)) as unknown as IUserDocument;
+          replies.push(userHash);
+        }
+      }
+
+      // Remove the user with the excluded username from the replies array
+      const excludeUsernameIndex = replies.findIndex((user) => user.username === excludedUsername);
+      replies.splice(excludeUsernameIndex, 1);
+
+      // Parse the user document fields and return the resulting array of user documents
+      for (const reply of replies) {
+        reply.createdAt = new Date(Helpers.parseJson(`${reply.createdAt}`));
+        reply.postsCount = Helpers.parseJson(`${reply.postsCount}`);
+        reply.blocked = Helpers.parseJson(`${reply.blocked}`);
+        reply.blockedBy = Helpers.parseJson(`${reply.blockedBy}`);
+        reply.notifications = Helpers.parseJson(`${reply.notifications}`);
+        reply.social = Helpers.parseJson(`${reply.social}`);
+        reply.followersCount = Helpers.parseJson(`${reply.followersCount}`);
+        reply.followingCount = Helpers.parseJson(`${reply.followingCount}`);
+        reply.bgImageId = Helpers.parseJson(`${reply.bgImageId}`);
+        reply.bgImageVersion = Helpers.parseJson(`${reply.bgImageVersion}`);
+        reply.profilePicture = Helpers.parseJson(`${reply.profilePicture}`);
+      }
+      return replies;
+    } catch (error) {
+      // Log the error and throw a server error
+      log.error(error);
+      throw new ServerError('Server error. Try again.');
+    }
+  }
+
   /**
    * Updates a single user item in the cache.
    * @param userId the user ID.
@@ -138,6 +236,19 @@ export class UserCache extends BaseCache {
       // Retrieve the updated user from cache and return it
       const response: IUserDocument = (await this.getUserFromCache(userId)) as IUserDocument;
       return response;
+    } catch (error) {
+      log.error(error);
+      throw new ServerError('Server error. Try again.');
+    }
+  }
+
+  public async getTotalUserInCache(): Promise<number> {
+    try {
+      if (!this.client.isOpen) {
+        await this.client.connect();
+      }
+      const count: number = await this.client.ZCARD('user');
+      return count;
     } catch (error) {
       log.error(error);
       throw new ServerError('Server error. Try again.');
