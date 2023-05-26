@@ -71,4 +71,31 @@ export class Helpers {
     // Test if the given string matches the data URL pattern
     return dataUrlRegex.test(value);
   }
+
+  /**
+   * Shuffles the elements of an array using the Fisher-Yates shuffle algorithm.
+   * @param list The array to shuffle.
+   * @returns The shuffled array.
+   */
+  static shuffle(list: string[]): string[] {
+    // Iterate over the array in reverse order
+    for (let i = list.length - 1; i > 0; i--) {
+      // Generate a random index between 0 and i, inclusive
+      const j = Math.floor(Math.random() * (i + 1));
+      // Swap the elements at indices i and j
+      [list[i], list[j]] = [list[j], list[i]];
+    }
+    // Return the shuffled array
+    return list;
+  }
+
+  /**
+   * Escapes special characters in a string to create a regular expression pattern.
+   * @param str The string to escape.
+   * @returns A new string with special characters escaped.
+   */
+  static escapeRegex(text: string): string {
+    // Use a regular expression to replace special characters with their escaped counterparts
+    return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+  }
 }
