@@ -1,8 +1,5 @@
 import { joiValidation } from '@global/decorators/joi-validation.decorators';
-import { Helpers } from '@global/helpers/helpers';
-import { userService } from '@service/db/user.service';
 import { UserCache } from '@service/redis/user.cache';
-import { ISearchUser } from '@user/interfaces/user.interface';
 import { notificationSettingsSchema } from '@user/schemes/info';
 import { Request, Response } from 'express';
 import HTPP_STATUS from 'http-status-codes';
