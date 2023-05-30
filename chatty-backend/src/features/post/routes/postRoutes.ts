@@ -23,6 +23,8 @@ class PostRoutes {
 
     this.router.put('/post/:postId', authMiddleware.checkAuthentication, Update.prototype.post);
     this.router.put('/post/image/:postId', authMiddleware.checkAuthentication, Update.prototype.postWithImage);
+    this.router.put('/post/video/:postId', authMiddleware.checkAuthentication, Update.prototype.postWithVideo);
+
     this.router.delete('/post/:postId', authMiddleware.checkAuthentication, Delete.prototype.post);
     return this.router;
   }
