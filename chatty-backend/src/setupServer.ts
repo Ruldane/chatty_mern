@@ -20,8 +20,9 @@ import { SocketIOPostHandler } from '@socket/post';
 import { SocketIOFollowerHandler } from '@socket/follower';
 import { SocketIOUserHandler } from '@socket/user';
 import { SocketIOImageHandler } from '@socket/image';
+import apiStats from 'swagger-stats';
 
-const SERVER_PORT = 5001;
+const SERVER_PORT = 5000;
 const log: Logger = config.createLogger('server');
 
 export class ChattyServer {
@@ -36,6 +37,7 @@ export class ChattyServer {
     this.routesMiddleware(this.app);
     this.globalErrorHandler(this.app);
     this.startServer(this.app);
+    this.apiMonitoring(this.app);
   }
   private securityMiddleware(app: Application): void {
     app.use(
@@ -55,6 +57,13 @@ export class ChattyServer {
         credentials: true,
         optionsSuccessStatus: 200,
         methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS']
+      })
+    );
+  }
+  private apiMonitoring(app: Application): void {
+    app.use(
+      apiStats.getMiddleware({
+        uriPath: '/api-monitoring'
       })
     );
   }
@@ -81,6 +90,9 @@ export class ChattyServer {
   }
 
   private async startServer(app: Application): Promise<void> {
+    if (!config.JWT_TOKEN) {
+      throw new Error('JWT_TOKEN is not defined');
+    }
     try {
       const httpServer: http.Server = new http.Server(app);
       const socketIO: Server = await this.createSocketIO(httpServer);
@@ -122,6 +134,7 @@ export class ChattyServer {
   }
 
   private startHttpServer(httpServer: http.Server): void {
+    log.info(`Worker with process id of ${process.pid} has started`);
     log.info(`Server has started with process ${process.pid}`);
     httpServer.listen(SERVER_PORT, () => {
       log.info(`Server started on port ${SERVER_PORT}`);

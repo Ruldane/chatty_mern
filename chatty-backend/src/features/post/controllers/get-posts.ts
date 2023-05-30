@@ -44,4 +44,19 @@ export class Get {
     posts = cachedPosts.length ? cachedPosts : await postService.getPosts({ imgId: '$ne', gifUrl: '$ne' }, skip, limit, { createAt: -1 });
     res.status(HTTP_STATUS.OK).json({ message: 'All posts with Image', posts });
   }
+
+  public async postsWithVideos(req: Request, res: Response): Promise<void> {
+    const { page } = req.params;
+    const skip: number = (parseInt(page) - 1) * PAGE_SIZE;
+    // first query will return 1 *10 = 10 posts, second query will return 2 * 10 = 20 posts
+    const limit: number = PAGE_SIZE * parseInt(page);
+    // will be use at the sarting value for redis
+    const newSkip: number = skip === 0 ? skip : skip + 1;
+    let posts: IPostDocument[] = [];
+    // call redis to get posts
+    const cachedPosts: IPostDocument[] = await postCache.getPostsWithVideosFromCache('post', newSkip, limit);
+    // if there is no posts in redis, call MongoDB
+    posts = cachedPosts.length ? cachedPosts : await postService.getPosts({ videoId: '$ne' }, skip, limit, { createAt: -1 });
+    res.status(HTTP_STATUS.OK).json({ message: 'All posts with video', posts });
+  }
 }
