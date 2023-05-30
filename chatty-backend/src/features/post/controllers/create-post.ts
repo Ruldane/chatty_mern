@@ -1,5 +1,5 @@
 import { joiValidation } from '@global/decorators/joi-validation.decorators';
-import { postSchema, postWithImageSchema } from '@post/schemes/post.schemes';
+import { postSchema, postWithImageSchema, postWithVideoSchema } from '@post/schemes/post.schemes';
 import { Request, Response } from 'express';
 import { ObjectId } from 'mongodb';
 import HTTP_STATUS from 'http-status-codes';
@@ -9,7 +9,7 @@ import { socketIOPostObject } from '@socket/post';
 import { postQueue } from '@service/queus/post.queue';
 import { UploadApiResponse } from 'cloudinary';
 import { BadRequestError } from '@global/helpers/error-handler';
-import { uploads } from '@global/helpers/cloudinary-upload';
+import { uploads, videoUpload } from '@global/helpers/cloudinary-upload';
 import { imageQueue } from '@service/queus/image.queue';
 
 const postCache: PostCache = new PostCache();
@@ -40,6 +40,8 @@ export class Create {
       commentsCount: 0,
       imgVersion: '',
       imgId: '',
+      videoId: '',
+      videoVersion: '',
       feelings,
       createdAt: new Date(),
       reactions: {
@@ -109,6 +111,8 @@ export class Create {
       commentsCount: 0,
       imgVersion: result.version.toString(),
       imgId: result.public_id,
+      videoId: '',
+      videoVersion: '',
       feelings,
       createdAt: new Date(),
       reactions: {
@@ -144,5 +148,71 @@ export class Create {
 
     // Respond back to the client with HTTP status code 201 and newly created post
     res.status(HTTP_STATUS.CREATED).json({ message: 'Post created with image successfully', post: createdPost });
+  }
+
+  /**
+   * Asynchronously creates a new post with an uploaded video and sends it to the server.
+   *
+   * @param {Request} req - The HTTP request object.
+   * @param {Response} res - The HTTP response object.
+   * @return {Promise<void>} A Promise that resolves when the post is created and sent to the server.
+   */
+  @joiValidation(postWithVideoSchema)
+  public async postWithVideo(req: Request, res: Response): Promise<void> {
+    const { post, bgColor, privacy, gifUrl, profilePicture, feelings, video } = req.body;
+    const result: UploadApiResponse = (await videoUpload(video)) as UploadApiResponse;
+
+    // If image was not properly uploaded, throw BadRequestError with message
+    if (!result?.public_id) {
+      throw new BadRequestError(result.message);
+    }
+
+    const postObjectId: ObjectId = new ObjectId();
+
+    // Construct the new post document from request parameters and uploaded image result
+    const createdPost: IPostDocument = {
+      _id: postObjectId,
+      userId: req.currentUser!.userId,
+      username: req.currentUser!.username,
+      email: req.currentUser!.email,
+      avatarColor: req.currentUser!.avatarColor,
+      profilePicture,
+      post,
+      bgColor,
+      imgVersion: '',
+      imgId: '',
+      privacy,
+      gifUrl,
+      commentsCount: 0,
+      videoVersion: result.version.toString(),
+      videoId: result.public_id,
+      feelings,
+      createdAt: new Date(),
+      reactions: {
+        like: 0,
+        love: 0,
+        happy: 0,
+        sad: 0,
+        wow: 0,
+        angry: 0
+      }
+    } as IPostDocument;
+
+    // Send the newly created post to the server via socketIO connection
+    socketIOPostObject.emit('add post', createdPost);
+
+    // Save the newly created post to cache
+    await postCache.savePostToCache({
+      key: postObjectId,
+      currentUserId: `${req.currentUser!.userId}`,
+      uId: `${req.currentUser!.uId}`,
+      createdPost
+    });
+
+    // Add the newly created post to the post queue to eventually save to database
+    postQueue.addPostJob('addPostToDB', { key: req.currentUser!.userId, value: createdPost });
+
+    // Respond back to the client with HTTP status code 201 and newly created post
+    res.status(HTTP_STATUS.CREATED).json({ message: 'Post created with video successfully', post: createdPost });
   }
 }

@@ -28,7 +28,6 @@ export class PostCache extends BaseCache {
       userId,
       username,
       email,
-
       avatarColor,
       profilePicture,
       post,
@@ -39,6 +38,8 @@ export class PostCache extends BaseCache {
       commentsCount,
       imgVersion,
       imgId,
+      videoId,
+      videoVersion,
       reactions,
       createdAt
     } = createdPost;
@@ -60,6 +61,8 @@ export class PostCache extends BaseCache {
       reactions: JSON.stringify(reactions),
       imgVersion: `${imgVersion}`,
       imgId: `${imgId}`,
+      videoId: `${videoId}`,
+      videoVersion: `${videoVersion}`,
       createdAt: `${createdAt}`
     };
 
@@ -205,6 +208,41 @@ export class PostCache extends BaseCache {
     }
   }
 
+  public async getPostsWithVideoFromCache(key: string, start: number, end: number): Promise<IPostDocument[]> {
+    try {
+      // Connect to the Redis client if it is not already open
+      if (!this.client.isOpen) {
+        await this.client.connect();
+      }
+      // Retrieve the specified range of values from the cache.
+      const reply: string[] = await this.client.ZRANGE(key, start, end, { REV: true });
+      // Create a new Redis multi command, which allows multiple commands to be executed in one operation.
+      const multi: ReturnType<typeof this.client.multi> = this.client.multi();
+      // For each value retrieved from the cache, retrieve the corresponding post data from Redis.
+      for (const value of reply) {
+        multi.HGETALL(`posts:${value}`);
+      }
+      // Execute the multi command and retrieve the results.
+      const replies: PostCacheMultiType = (await multi.exec()) as PostCacheMultiType;
+      // Filter out any posts that don't have videos.
+      const postWithImages: IPostDocument[] = [];
+      for (const post of replies as IPostDocument[]) {
+        if (post.videoId && post.videoVersion) {
+          // Parse certain properties from strings to their correct types.
+          post.commentsCount = Helpers.parseJson(`${post.commentsCount}`) as number;
+          post.reactions = Helpers.parseJson(`${post.reactions}`) as IReactions;
+          post.createdAt = Helpers.parseJson(`${post.createdAt}`) as Date;
+          postWithImages.push(post);
+        }
+      }
+      return postWithImages;
+    } catch (error) {
+      log.error(error);
+      // If an error occurs, log it and throw a server error.
+      throw new ServerError('Server error. Try again.');
+    }
+  }
+
   /**
    * Retrieves all posts for a user from the cache
    * @param key - the cache key to retrieve the user's posts from
@@ -307,7 +345,7 @@ export class PostCache extends BaseCache {
    */
   public async updatePostInCache(key: string, updatedPost: IPostDocument): Promise<IPostDocument> {
     // Destructure properties from updated post object.
-    const { post, bgColor, feelings, privacy, gifUrl, imgVersion, imgId, profilePicture } = updatedPost;
+    const { post, bgColor, feelings, privacy, gifUrl, imgVersion, imgId, profilePicture, videoId, videoVersion } = updatedPost;
 
     // Save data to update in object format.
     const dataToUpdate = {
@@ -318,7 +356,9 @@ export class PostCache extends BaseCache {
       gifUrl: `${gifUrl}`,
       imgVersion: `${imgVersion}`,
       imgId: `${imgId}`,
-      profilePicture: `${profilePicture}`
+      profilePicture: `${profilePicture}`,
+      videoId: `${videoId}`,
+      videoVersion: `${videoVersion}`
     };
 
     try {
