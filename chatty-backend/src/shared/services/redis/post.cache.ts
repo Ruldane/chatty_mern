@@ -208,7 +208,7 @@ export class PostCache extends BaseCache {
     }
   }
 
-  public async getPostsWithVideoFromCache(key: string, start: number, end: number): Promise<IPostDocument[]> {
+  public async getPostsWithVideosFromCache(key: string, start: number, end: number): Promise<IPostDocument[]> {
     try {
       // Connect to the Redis client if it is not already open
       if (!this.client.isOpen) {

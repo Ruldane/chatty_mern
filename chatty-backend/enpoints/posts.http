@@ -56,6 +56,18 @@ Accept: : application/json
 withCredentials: true
 
 ### 
+GET {{baseUrl}}/{{urlPath}}/post/images/1
+Content-Type: application/json
+Accept: : application/json
+withCredentials: true
+
+### 
+GET {{baseUrl}}/{{urlPath}}/post/video/1
+Content-Type: application/json
+Accept: : application/json
+withCredentials: true
+
+### 
 DELETE  {{baseUrl}}/{{urlPath}}/post/643aba44e45a74cb513be02b
 Content-Type: application/json
 Accept: : application/json
