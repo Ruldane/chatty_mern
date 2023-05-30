@@ -20,6 +20,7 @@ class Config {
   public SENDGRID_API_KEY: string | undefined;
   public SENDGRID_SENDER: string | undefined;
   public EC2_URL: string | undefined;
+  public API_URL: string | undefined;
 
   private readonly DEFAULT_DATABASE_URL: string = 'mongodb://localhost:27017';
 
@@ -39,6 +40,7 @@ class Config {
     this.SENDGRID_API_KEY = process.env.SENDGRID_API_KEY || '';
     this.SENDGRID_SENDER = process.env.SENDGRID_SENDER || '';
     this.EC2_URL = process.env.EC2_URL || '';
+    this.API_URL = process.env.API_URL || '';
   }
 
   public createLogger(name: string): bunyan {

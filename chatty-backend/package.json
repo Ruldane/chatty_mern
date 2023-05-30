@@ -4,14 +4,19 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "start": "nodemon ./build/app.js",
+    "start": "NODE_ENV=production pm2 start ./build/src/app.js -i 5 --attach --watch | bunyan",
+    "stop": "pm2 stop all",
+    "delete": "pm2 delete all",
+    "startBuild": "nodemon ./build/app.js",
     "lint:check": "eslint ./src/**/*.ts",
     "lint:fix": "eslint --fix ./src/**/*.ts",
     "dev": "nodemon -r tsconfig-paths/register src/app.ts | bunyan",
     "prettier:check": "prettier --check ./src/**/*.{ts,json}",
     "prettier:fix": "prettier --write ./src/**/*.{ts,json}",
     "test": "jest --coverage=true -w=1 --forceExit --detectOpenHandles --watchAll=false",
-    "build": "tsc --project tsconfig.json && tsc-alias -p tsconfig.json"
+    "build": "tsc --project tsconfig.json && tsc-alias -p tsconfig.json",
+    "seeds:dev": "npx ts-node src/seeds.ts",
+    "seeds:prod": "npx ts-node ./build//seeds.js"
   },
   "keywords": [],
   "author": "",
@@ -19,16 +24,16 @@
   "dependencies": {
     "@bull-board/express": "^4.12.2",
     "@bull-board/ui": "^5.0.0",
-    "@faker-js/faker": "^7.6.0",
     "@jest/types": "^29.4.3",
     "@sendgrid/mail": "^7.7.0",
     "@socket.io/redis-adapter": "^8.1.0",
+    "@types/faker": "^6.6.9",
     "axios": "^1.4.0",
     "bcryptjs": "^2.4.3",
     "bull": "^4.10.4",
     "bullmq": "^3.10.0",
     "bunyan": "^1.8.15",
-    "canvas": "^2.11.0",
+    "canvas": "^2.11.2",
     "cloudinary": "^1.35.0",
     "compression": "^1.7.4",
     "cookie-session": "^2.0.0",
@@ -54,6 +59,7 @@
     "typescript-transform-paths": "^3.4.6"
   },
   "devDependencies": {
+    "@faker-js/faker": "^8.0.2",
     "@types/bcryptjs": "^2.4.2",
     "@types/bull": "^4.10.0",
     "@types/bunyan": "^1.8.8",
