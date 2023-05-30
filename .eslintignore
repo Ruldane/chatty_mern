@@ -78,6 +78,7 @@ chatty-backend/.yarn-integrity
 
 # dotenv environment variable files
 chatty-backend/.env
+chatty-backend/.env.production
 chatty-backend/.env.development.local
 chatty-backend/.env.test.local
 chatty-backend/.env.production.local
