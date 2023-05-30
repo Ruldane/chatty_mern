@@ -82,6 +82,7 @@ chatty-backend/.env.development.local
 chatty-backend/.env.test.local
 chatty-backend/.env.production.local
 chatty-backend/.env.local
+chatty-backend/.env.production
 
 # parcel-bundler cache (https://parceljs.org/)
 chatty-backend/.cache

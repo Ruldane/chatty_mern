@@ -1,0 +1,17 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "npm",
+      "script": "dev",
+      "path": "chatty-backend",
+      "problemMatcher": [],
+      "label": "npm: dev - chatty-backend",
+      "detail": "nodemon -r tsconfig-paths/register src/app.ts | bunyan",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    }
+  ]
+}

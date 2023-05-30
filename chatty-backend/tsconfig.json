@@ -1,11 +1,11 @@
 {
   "compilerOptions": {
-    "target": "es2016",
+    "target": "es2015",
     "module": "commonjs",
-    "lib": ["DOM", "ES2016"],
+    "lib": ["DOM", "ES2015"],
     "baseUrl": ".",
     "outDir": "./build",
-    "rootDir": "src",
+    "rootDir": ".",
     "strict": true,
     "noImplicitAny": true,
     "noUnusedLocals": false,
@@ -19,23 +19,22 @@
     "allowSyntheticDefaultImports": true,
     "pretty": true,
     "resolveJsonModule": true,
-    // Configure your path mapping here
+    "plugins": [{ "transform": "typescript-transform-paths" }, { "transform": "typescript-transform-paths", "afterDeclarations": true }],
     "paths": {
       "@user/*": ["src/features/user/*"],
+      "@post/*": ["src/features/post/*"],
+      "@chat/*": ["src/features/chat/*"],
+      "@reaction/*": ["src/features/reactions/*"],
+      "@image/*": ["src/features/images/*"],
+      "@notification/*": ["src/features/notifications/*"],
+      "@follower/*": ["src/features/followers/*"],
+      "@comment/*": ["src/features/comments/*"],
       "@auth/*": ["src/features/auth/*"],
       "@global/*": ["src/shared/globals/*"],
       "@service/*": ["src/shared/services/*"],
       "@socket/*": ["src/shared/sockets/*"],
       "@worker/*": ["src/shared/workers/*"],
       "@root/*": ["src/*"]
-    },
-    // Note: To transform paths for both the output .js and .d.ts files, you need both of the below entries
-    "plugins": [
-      // Transform paths in output .js files
-      { "transform": "typescript-transform-paths" },
-
-      // Transform paths in output .d.ts files (Include this line if you output declarations files)
-      { "transform": "typescript-transform-paths", "afterDeclarations": true }
-    ]
+    }
   }
 }

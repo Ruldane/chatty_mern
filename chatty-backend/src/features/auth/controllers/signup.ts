@@ -33,7 +33,7 @@ export class SignUp {
     // check if user exists
     if (checkIfUserExists) {
       // throw error
-      throw new BadRequestError('Invalide credentials');
+      throw new BadRequestError('Invalid credentials');
     }
     const authObjectId: ObjectId = new ObjectId();
     const userObjectId: ObjectId = new ObjectId();

@@ -1,5 +1,5 @@
 import { IAuthDocument } from '@auth/interfaces/auth.interface';
-import { AuthModel } from '@auth/interfaces/auth.schema';
+import { AuthModel } from '@auth/models/auth.schema';
 import { Helpers } from '@global/helpers/helpers';
 
 /**
@@ -16,6 +16,23 @@ class AuthService {
    */
   public async createAuthUser(data: IAuthDocument): Promise<void> {
     await AuthModel.create(data);
+  }
+  /**
+   * This function updates the passwordResetToken and passwordResetExpires fields in the Auth model
+   * @param authId The ID for the Auth model
+   * @param token The token value
+   * @param tokenExpiration The token expiration time
+   */
+  public async updatePasswordToken(authId: string, token: string, tokenExpiration: number): Promise<void> {
+    await AuthModel.updateOne(
+      {
+        _id: authId
+      },
+      {
+        passwordResetToken: token,
+        passwordResetExpires: tokenExpiration
+      }
+    );
   }
   /**
    * Gets the user by username or email.
@@ -43,6 +60,31 @@ class AuthService {
    */
   public async getAuthUserByUsername(username: string): Promise<IAuthDocument> {
     const user: IAuthDocument = (await AuthModel.findOne({ username: Helpers.firstLetterUpperCase(username) }).exec()) as IAuthDocument;
+    return user;
+  }
+
+  /**
+   * Gets a user by email
+   * @param email Email of the user
+   * @returns Returns a user
+   */
+  public async getAuthUserByEmail(email: string): Promise<IAuthDocument> {
+    const user: IAuthDocument = (await AuthModel.findOne({ email: Helpers.loverCase(email) }).exec()) as IAuthDocument;
+    return user;
+  }
+  /**
+   * Retrieves an authenticated user by their password reset token.
+   *
+   * @param {string} token - The password reset token to be used in the search.
+   * @return {Promise<IAuthDocument>} A promise that resolves with the authenticated user document
+   * that has the matching password reset token. If there is no matching document, the promise will
+   * resolve with a value of null.
+   */
+  public async getAuthUserByPasswordToken(token: string): Promise<IAuthDocument> {
+    const user: IAuthDocument = (await AuthModel.findOne({
+      passwordResetToken: token,
+      passwordResetExpires: { $gt: Date.now() }
+    }).exec()) as IAuthDocument;
     return user;
   }
 }
